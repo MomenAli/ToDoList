@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 
 import com.engmomenali.todolist.database.AppDataBase;
+import com.engmomenali.todolist.database.AppExecutors;
 import com.engmomenali.todolist.database.TaskEntry;
 
 import java.util.Date;
@@ -118,9 +119,14 @@ public class AddTaskActivity extends AppCompatActivity {
         Date date = new Date();
 
         // create taskentry object
-        TaskEntry taskEntry = new TaskEntry(description,periorty,date);
-        mDB.taskDao().insertTask(taskEntry);
-        finish();
+        final TaskEntry taskEntry = new TaskEntry(description,periorty,date);
+        AppExecutors.getInstance().getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDB.taskDao().insertTask(taskEntry);
+                finish();
+            }
+        });
     }
 
     /**

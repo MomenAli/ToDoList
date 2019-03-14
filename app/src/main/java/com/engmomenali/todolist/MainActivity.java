@@ -27,6 +27,10 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import com.engmomenali.todolist.database.AppDataBase;
+import com.engmomenali.todolist.database.AppExecutors;
+import com.engmomenali.todolist.database.TaskEntry;
+
+import java.util.List;
 
 import static android.support.v7.widget.DividerItemDecoration.VERTICAL;
 
@@ -106,6 +110,21 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
     @Override
     protected void onResume() {
         super.onResume();
-        mAdapter.setTasks(mDB.taskDao().loadAllTasks());
+        AppExecutors.getInstance().getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final List<TaskEntry> tasks = mDB.taskDao().loadAllTasks();
+                /* because I can't update the UI from thread,
+                * it can only be done from the mainThread,
+                * I must do the below solution.
+                * this solution will be simplified later */
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter.setTasks(tasks);
+                    }
+                });
+            }
+        });
     }
 }
