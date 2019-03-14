@@ -24,7 +24,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 
+import com.engmomenali.todolist.database.AppDataBase;
 import com.engmomenali.todolist.database.TaskEntry;
+
+import java.util.Date;
 
 
 public class AddTaskActivity extends AppCompatActivity {
@@ -48,11 +51,18 @@ public class AddTaskActivity extends AppCompatActivity {
 
     private int mTaskId = DEFAULT_TASK_ID;
 
+    //create database object
+    private AppDataBase mDB;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
         initViews();
+
+
+
+        mDB = AppDataBase.getInstance(getApplicationContext());
 
         if (savedInstanceState != null && savedInstanceState.containsKey(INSTANCE_TASK_ID)) {
             mTaskId = savedInstanceState.getInt(INSTANCE_TASK_ID, DEFAULT_TASK_ID);
@@ -103,7 +113,14 @@ public class AddTaskActivity extends AppCompatActivity {
      * It retrieves user input and inserts that new task data into the underlying database.
      */
     public void onSaveButtonClicked() {
-        // Not yet implemented
+        String description = mEditText.getText().toString();
+        int periorty =  getPriorityFromViews();
+        Date date = new Date();
+
+        // create taskentry object
+        TaskEntry taskEntry = new TaskEntry(description,periorty,date);
+        mDB.taskDao().insertTask(taskEntry);
+        finish();
     }
 
     /**
