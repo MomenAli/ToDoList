@@ -18,6 +18,8 @@ package com.engmomenali.todolist;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -31,6 +33,8 @@ import android.widget.RadioGroup;
 import com.engmomenali.todolist.database.AppDataBase;
 import com.engmomenali.todolist.database.AppExecutors;
 import com.engmomenali.todolist.database.TaskEntry;
+import com.engmomenali.todolist.vm.AddTaskViewModel;
+import com.engmomenali.todolist.vm.AddTaskViewModelFactory;
 
 import java.util.Date;
 
@@ -79,12 +83,15 @@ public class AddTaskActivity extends AppCompatActivity {
             if (mTaskId == DEFAULT_TASK_ID) {
                 // populate the UI
                 mTaskId = intent.getIntExtra(EXTRA_TASK_ID, DEFAULT_TASK_ID);
-                final LiveData<TaskEntry> task = mDB.taskDao().loadTaskByID(mTaskId);
-                task.observe(this, new Observer<TaskEntry>() {
+
+                // add ViewModel
+                AddTaskViewModelFactory factory = new AddTaskViewModelFactory(mDB,mTaskId);
+                final AddTaskViewModel viewModel = ViewModelProviders.of(this , factory).get(AddTaskViewModel.class);
+                viewModel.getTask().observe(this, new Observer<TaskEntry>() {
                     @Override
                     public void onChanged(@Nullable TaskEntry taskEntry) {
                         Log.d(TAG, " Retrieve Live data from database for this ID");
-                        task.removeObserver(this);
+                        viewModel.getTask().removeObserver(this);
                         populateUI(taskEntry);
                     }
                 });

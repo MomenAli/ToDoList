@@ -16,8 +16,8 @@
 
 package com.engmomenali.todolist;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -33,6 +33,7 @@ import android.view.View;
 import com.engmomenali.todolist.database.AppDataBase;
 import com.engmomenali.todolist.database.AppExecutors;
 import com.engmomenali.todolist.database.TaskEntry;
+import com.engmomenali.todolist.vm.MainViewModel;
 
 import java.util.List;
 
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
             }
         });
 
-        reloadTasks();
+        setUpViewModel();
     }
 
     @Override
@@ -124,12 +125,12 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
         startActivity(intent);
     }
 
-    private void reloadTasks() {
-                final LiveData<List<TaskEntry>> tasks = mDB.taskDao().loadAllTasks();
-                tasks.observe(this, new Observer<List<TaskEntry>>() {
+    private void setUpViewModel() {
+            MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+            viewModel.getTasks().observe(this, new Observer<List<TaskEntry>>() {
                     @Override
                     public void onChanged(@Nullable List<TaskEntry> taskEntries) {
-                        Log.d(TAG, " Retrieve live date from database");
+                        Log.d(TAG, " Retrieve live date from database in ViewModel ");
                         mAdapter.setTasks(taskEntries);
                     }
                 });
