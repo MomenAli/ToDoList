@@ -16,14 +16,18 @@
 
 package com.engmomenali.todolist;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.View;
 
 import com.engmomenali.todolist.database.AppDataBase;
@@ -88,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
                         int position = viewHolder.getAdapterPosition();
                         List<TaskEntry> tasks = mAdapter.getTasks();
                         mDB.taskDao().deleteTask(tasks.get(position));
-                        reloadTasks();
                     }
                 });
             }
@@ -109,6 +112,8 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
                 startActivity(addTaskIntent);
             }
         });
+
+        reloadTasks();
     }
 
     @Override
@@ -119,28 +124,14 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.ItemC
         startActivity(intent);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        reloadTasks();
-    }
-
     private void reloadTasks() {
-        AppExecutors.getInstance().getDiskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                final List<TaskEntry> tasks = mDB.taskDao().loadAllTasks();
-                /* because I can't update the UI from thread,
-                * it can only be done from the mainThread,
-                * I must do the below solution.
-                * this solution will be simplified later */
-                runOnUiThread(new Runnable() {
+                final LiveData<List<TaskEntry>> tasks = mDB.taskDao().loadAllTasks();
+                tasks.observe(this, new Observer<List<TaskEntry>>() {
                     @Override
-                    public void run() {
-                        mAdapter.setTasks(tasks);
+                    public void onChanged(@Nullable List<TaskEntry> taskEntries) {
+                        Log.d(TAG, " Retrieve live date from database");
+                        mAdapter.setTasks(taskEntries);
                     }
                 });
-            }
-        });
     }
 }
